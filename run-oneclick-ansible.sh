@@ -17,7 +17,7 @@ echo "--------------------------------------"
 echo "2) Creating hosts.ini automatically"
 echo "--------------------------------------"
 
-ANSIBLE_DIR="$HOME/oneclick-infra/ansible"
+ANSIBLE_DIR="ANSIBLE_DIR="$WORKSPACE/ansible"
 mkdir -p $ANSIBLE_DIR
 
 cat <<EOF > $ANSIBLE_DIR/hosts.ini
