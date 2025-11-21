@@ -1,0 +1,38 @@
+---
+- name: Install PostgreSQL 14 on DB nodes
+  hosts: db
+  become: yes
+  roles:
+    - postgres
+
+- name: Configure Primary PostgreSQL
+  hosts: primary
+  become: yes
+  tasks:
+
+    - name: Enable WAL settings
+      lineinfile:
+        path: /etc/postgresql/14/main/postgresql.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^wal_level', line: 'wal_level = replica' }
+        - { regexp: '^max_wal_senders', line: 'max_wal_senders = 10' }
+        - { regexp: '^max_replication_slots', line: 'max_replication_slots = 5' }
+        - { regexp: '^listen_addresses', line: "listen_addresses = '*'" }
+
+    - name: Allow replica access to primary
+      blockinfile:
+        path: /etc/postgresql/14/main/pg_hba.conf
+        block: |
+          host replication replicator 10.50.4.0/24 md5
+
+    - name: Restart PostgreSQL
+      service:
+        name: postgresql
+        state: restarted
+
+    - name: Create replication user
+      shell: |
+        sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='replicator'" | grep -q 1 ||
+        sudo -u postgres psql -c "CREATE ROLE replicator REPLICATION LOGIN ENCRYPTED PASSWORD 'StrongPass123';"

@@ -1,0 +1,35 @@
+---
+- name: Configure Replica PostgreSQL
+  hosts: replica
+  become: yes
+  tasks:
+
+    - name: Stop PostgreSQL
+      service:
+        name: postgresql
+        state: stopped
+
+    - name: Remove old data
+      file:
+        path: /var/lib/postgresql/14/main
+        state: absent
+
+    - name: Recreate data directory
+      file:
+        path: /var/lib/postgresql/14/main
+        state: directory
+        owner: postgres
+        group: postgres
+        mode: '0700'
+
+    - name: Base backup from primary
+      shell: |
+        sudo -u postgres PGPASSWORD="StrongPass123" pg_basebackup \
+          -h {{ hostvars['primary']['ansible_host'] }} \
+          -D /var/lib/postgresql/14/main \
+          -U replicator -Fp -Xs -P -R
+
+    - name: Start PostgreSQL
+      service:
+        name: postgresql
+        state: started

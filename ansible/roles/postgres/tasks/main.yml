@@ -1,0 +1,17 @@
+---
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install PostgreSQL 14
+  apt:
+    name: postgresql
+    state: present
+
+- name: Ensure PostgreSQL is started
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
