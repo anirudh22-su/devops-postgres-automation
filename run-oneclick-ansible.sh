@@ -29,7 +29,7 @@ bastion ansible_host=$BASTION_IP
 
 [all:vars]
 ansible_user=ubuntu
-ansible_ssh_private_key_file=~/.ssh/jenkins.pem
+ansible_ssh_private_key_file=/var/lib/jenkins/.ssh/jenkins.pem
 ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -i ~/.ssh/jenkins.pem ubuntu@$BASTION_IP"'
 EOF
 
