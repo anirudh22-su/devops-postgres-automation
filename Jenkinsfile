@@ -2,51 +2,53 @@ pipeline {
     agent any
 
     environment {
-        SSH_KEY = credentials('jenkins-ssh-key')
+        AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
     }
 
     stages {
+
         stage('Checkout Repo') {
             steps {
-                git branch: 'main',
+                git branch: 'main', 
                     url: 'https://github.com/anirudh22-su/devops-postgres-automation.git'
             }
         }
 
         stage('Terraform Init') {
             steps {
-                sh '''
+                sh """
                 cd terraform
                 terraform init
-                '''
+                """
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                sh '''
+                sh """
                 cd terraform
                 terraform apply -auto-approve
-                '''
+                """
             }
         }
 
         stage('Run Ansible Automation') {
             steps {
-                sh '''
+                sh """
                 chmod +x run-oneclick-ansible.sh
                 ./run-oneclick-ansible.sh
-                '''
+                """
             }
         }
     }
 
     post {
-        success {
-            echo "🚀 Infrastructure deployed + PostgreSQL replication configured!"
-        }
         failure {
-            echo "❌ Build failed. Check logs."
+            echo "❌ Build failed."
+        }
+        success {
+            echo "✅ Build completed successfully."
         }
     }
 }
