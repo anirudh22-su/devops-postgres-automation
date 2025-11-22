@@ -2,53 +2,73 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('aws-access-key')
-        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key')
+        TF_IN_AUTOMATION = "true"
     }
 
     stages {
 
-        stage('Checkout Repo') {
+        stage('Checkout SCM') {
             steps {
-                git branch: 'main', 
-                    url: 'https://github.com/anirudh22-su/devops-postgres-automation.git'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/anirudh22-su/devops-postgres-automation.git',
+                        credentialsId: 'github-token'
+                    ]]
+                ])
             }
         }
 
         stage('Terraform Init') {
             steps {
-                sh """
-                cd terraform
-                terraform init
-                """
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-access-key']
+                ]) {
+                    sh '''
+                        cd terraform
+                        terraform init
+                    '''
+                }
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                sh """
-                cd terraform
-                terraform apply -auto-approve
-                """
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-access-key']
+                ]) {
+                    sh '''
+                        cd terraform
+                        terraform apply -auto-approve
+                    '''
+                }
             }
         }
 
         stage('Run Ansible Automation') {
             steps {
-                sh """
-                chmod +x run-oneclick-ansible.sh
-                ./run-oneclick-ansible.sh
-                """
+                withCredentials([sshUserPrivateKey(
+                    credentialsId: 'ssh-key',
+                    keyFileVariable: 'SSH_KEY'
+                )]) {
+                    sh '''
+                        chmod +x run-oneclick-ansible.sh
+                        ./run-oneclick-ansible.sh
+                    '''
+                }
             }
         }
     }
 
     post {
-        failure {
-            echo "❌ Build failed."
-        }
         success {
             echo "✅ Build completed successfully."
+        }
+        failure {
+            echo "❌ Build failed."
         }
     }
 }

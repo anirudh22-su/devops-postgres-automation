@@ -30,7 +30,11 @@ bastion ansible_host=$BASTION_IP
 [all:vars]
 ansible_user=ubuntu
 ansible_ssh_private_key_file=/var/lib/jenkins/.ssh/jenkins.pem
-ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -i /var/lib/jenkins/.ssh/jenkins.pem ubuntu@13.113.13.218"'
+ansible_ssh_common_args='
+  -o StrictHostKeyChecking=no
+  -o UserKnownHostsFile=/dev/null
+  -o ProxyCommand="ssh -W %h:%p -i /var/lib/jenkins/.ssh/jenkins.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$BASTION_IP"
+'
 EOF
 
 echo "hosts.ini created:"
