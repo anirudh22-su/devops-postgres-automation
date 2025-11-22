@@ -50,11 +50,15 @@ pipeline {
 
         stage('Run Ansible Automation') {
             steps {
-                withCredentials([sshUserPrivateKey(
-                    credentialsId: 'ssh-key',
-                    keyFileVariable: 'SSH_KEY'
-                )]) {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws-access-key'],
+                    sshUserPrivateKey(credentialsId: 'ssh-key', keyFileVariable: 'SSH_KEY')
+                ]) {
                     sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+
                         chmod +x run-oneclick-ansible.sh
                         ./run-oneclick-ansible.sh
                     '''
@@ -65,7 +69,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ Build completed successfully."
+            echo "✅ Pipeline completed successfully!"
         }
         failure {
             echo "❌ Build failed."
