@@ -22,10 +22,10 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding',
-                     credentialsId: 'aws-access-key']
-                ]) {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-access-key'
+                ]]) {
                     sh '''
                         cd terraform
                         terraform init
@@ -36,10 +36,10 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                withCredentials([
-                    [$class: 'AmazonWebServicesCredentialsBinding',
-                     credentialsId: 'aws-access-key']
-                ]) {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-access-key'
+                ]]) {
                     sh '''
                         cd terraform
                         terraform apply -auto-approve
@@ -51,24 +51,37 @@ pipeline {
         stage('Prepare SSH Key for Ansible') {
             steps {
                 sh '''
-                    echo "[INFO] Copying SSH key into workspace"
+                    echo "[INFO] Preparing SSH key for Ansible..."
 
-                    cp /home/anirudh/jenkins.pem jenkins.pem
+                    # Jenkins key location (CORRECT)
+                    SSH_KEY_PATH=/var/lib/jenkins/.ssh/jenkins.pem
+
+                    # Ensure correct perms
+                    sudo chmod 600 $SSH_KEY_PATH
+                    sudo chown jenkins:jenkins $SSH_KEY_PATH
+
+                    # Copy to workspace for Ansible
+                    cp $SSH_KEY_PATH jenkins.pem
+
                     chmod 600 jenkins.pem
-
-                    echo "[INFO] Key copied to: $WORKSPACE/jenkins.pem"
                 '''
             }
         }
 
         stage('Run Ansible Automation') {
             steps {
-                sh '''
-                    chmod +x run-oneclick-ansible.sh
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-access-key'
+                ]]) {
+                    sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 
-                    # Pass WORKSPACE so script can use correct key path
-                    WORKSPACE=$WORKSPACE ./run-oneclick-ansible.sh
-                '''
+                        chmod +x run-oneclick-ansible.sh
+                        ./run-oneclick-ansible.sh
+                    '''
+                }
             }
         }
     }
@@ -82,4 +95,5 @@ pipeline {
         }
     }
 }
+
 
