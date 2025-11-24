@@ -19,7 +19,7 @@ echo "--------------------------------------"
 
 cat > ansible/hosts.ini <<EOF
 [bastion]
-bastion ansible_host=$BASTION ansible_user=ubuntu ansible_ssh_private_key_file=/home/ubuntu/.ssh/jenkins.pem ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+bastion ansible_host=$BASTION ansible_user=ubuntu ansible_ssh_private_key_file=../jenkins.pem ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 [db]
 primary ansible_host=$PRIMARY
@@ -27,8 +27,8 @@ replica ansible_host=$REPLICA
 
 [db:vars]
 ansible_user=ubuntu
-ansible_ssh_private_key_file=/home/ubuntu/.ssh/jenkins.pem
-ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -i /home/ubuntu/.ssh/jenkins.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$BASTION\""
+ansible_ssh_private_key_file=../jenkins.pem
+ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -i ../jenkins.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$BASTION\""
 EOF
 
 echo "hosts.ini created:"
@@ -40,3 +40,4 @@ echo "--------------------------------------"
 
 cd ansible
 ansible-playbook -i hosts.ini site.yml
+
