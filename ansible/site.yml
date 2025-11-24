@@ -14,7 +14,7 @@
 
     - name: Copy Jenkins private key from controller to bastion
       copy:
-        src: /home/ubuntu/.ssh/jenkins.pem
+        src: ../jenkins.pem       # ✅ Correct path
         dest: /home/ubuntu/.ssh/jenkins.pem
         owner: ubuntu
         group: ubuntu
