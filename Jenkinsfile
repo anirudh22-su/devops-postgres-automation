@@ -48,21 +48,19 @@ pipeline {
             }
         }
 
-        stage('Prepare SSH Key for Ansible') {
-            steps {
-                withCredentials([sshUserPrivateKey(
-                    credentialsId: 'ssh-key',
-                    keyFileVariable: 'SSH_KEY'
-                )]) {
-                    sh """
-                        mkdir -p /home/ubuntu/.ssh
-                        cp \$SSH_KEY /home/ubuntu/.ssh/jenkins.pem
-                        chmod 600 /home/ubuntu/.ssh/jenkins.pem
-                        echo 'SSH key prepared successfully!'
-                    """
-                }
-            }
+  stage('Prepare SSH Key for Ansible') {
+    steps {
+        withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key', keyFileVariable: 'SSH_KEY')]) {
+            sh '''
+                mkdir -p /var/lib/jenkins/.ssh
+                cp $SSH_KEY /var/lib/jenkins/.ssh/jenkins.pem
+                chmod 600 /var/lib/jenkins/.ssh/jenkins.pem
+                chown -R jenkins:jenkins /var/lib/jenkins/.ssh
+            '''
         }
+    }
+}
+
 
         stage('Run Ansible Automation') {
             steps {
