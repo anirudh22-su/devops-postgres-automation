@@ -1,4 +1,25 @@
 ---
+- name: Prepare Bastion with SSH key
+  hosts: bastion
+  become: yes
+  tasks:
+
+    - name: Ensure .ssh directory exists
+      file:
+        path: /home/ubuntu/.ssh
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: '0700'
+
+    - name: Copy Jenkins private key from controller to bastion
+      copy:
+        src: /home/ubuntu/.ssh/jenkins.pem
+        dest: /home/ubuntu/.ssh/jenkins.pem
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+
 - name: Install PostgreSQL 14 on DB nodes
   hosts: db
   become: yes
@@ -9,19 +30,18 @@
   hosts: primary
   become: yes
   tasks:
-
     - name: Enable WAL settings
       lineinfile:
         path: /etc/postgresql/14/main/postgresql.conf
         regexp: "{{ item.regexp }}"
         line: "{{ item.line }}"
       loop:
-        - { regexp: '^wal_level', line: 'wal_level = replica' }
-        - { regexp: '^max_wal_senders', line: 'max_wal_senders = 10' }
+        - { regexp: '^wal_level',            line: 'wal_level = replica' }
+        - { regexp: '^max_wal_senders',      line: 'max_wal_senders = 10' }
         - { regexp: '^max_replication_slots', line: 'max_replication_slots = 5' }
-        - { regexp: '^listen_addresses', line: "listen_addresses = '*'" }
+        - { regexp: '^listen_addresses',     line: "listen_addresses = '*'" }
 
-    - name: Allow replica access to primary
+    - name: Allow replica access
       blockinfile:
         path: /etc/postgresql/14/main/pg_hba.conf
         block: |

@@ -17,7 +17,7 @@ variable "existing_vpc_id" {
 # Existing EC2 IPs (required for SG and routing)
 variable "existing_ec2_public_ip" {
   type    = string
-  default = "52.192.196.205"
+  default = "57.180.13.130"
 }
 
 variable "existing_ec2_private_ip" {
@@ -77,7 +77,7 @@ variable "ssh_key_name" {
 # Allowed SSH only from existing EC2 public IP
 variable "allowed_ssh_cidr" {
   type    = string
-  default = "52.192.196.205/32"
+  default = "57.180.13.130/32"
 }
 
 variable "bastion_type" {

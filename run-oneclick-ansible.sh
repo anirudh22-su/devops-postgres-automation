@@ -18,17 +18,17 @@ echo "2) Creating hosts.ini automatically"
 echo "--------------------------------------"
 
 cat > ansible/hosts.ini <<EOF
+[bastion]
+bastion ansible_host=$BASTION ansible_user=ubuntu ansible_ssh_private_key_file=/home/ubuntu/.ssh/jenkins.pem ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
 [db]
 primary ansible_host=$PRIMARY
 replica ansible_host=$REPLICA
 
-[bastion]
-bastion ansible_host=$BASTION
-
-[all:vars]
+[db:vars]
 ansible_user=ubuntu
-ansible_ssh_private_key_file=/var/lib/jenkins/.ssh/jenkins.pem
-ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand="ssh -W %h:%p -i /var/lib/jenkins/.ssh/jenkins.pem ubuntu@$BASTION"'
+ansible_ssh_private_key_file=/home/ubuntu/.ssh/jenkins.pem
+ansible_ssh_common_args="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ProxyCommand=\"ssh -W %h:%p -i /home/ubuntu/.ssh/jenkins.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ubuntu@$BASTION\""
 EOF
 
 echo "hosts.ini created:"
