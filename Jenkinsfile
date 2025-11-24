@@ -50,16 +50,21 @@ pipeline {
 
         stage('Prepare SSH Key for Ansible') {
             steps {
-                withCredentials([
-                    sshUserPrivateKey(credentialsId: 'ssh-key', keyFileVariable: 'SSH_KEY')
-                ]) {
-                    sh '''
-                        mkdir -p /var/lib/jenkins/.ssh
-                        cp $SSH_KEY /var/lib/jenkins/.ssh/jenkins.pem
-                        chmod 600 /var/lib/jenkins/.ssh/jenkins.pem
-                        chown -R jenkins:jenkins /var/lib/jenkins/.ssh
-                    '''
-                }
+                sh '''
+                    echo "[INFO] Copying SSH key for Ansible..."
+
+                    # Ensure ubuntu user ssh directory exists
+                    sudo mkdir -p /home/ubuntu/.ssh
+
+                    # Copy your key from actual EC2 path
+                    sudo cp /home/anirudh/jenkins.pem /home/ubuntu/.ssh/jenkins.pem
+
+                    # Set correct permission
+                    sudo chmod 600 /home/ubuntu/.ssh/jenkins.pem
+                    sudo chown ubuntu:ubuntu /home/ubuntu/.ssh/jenkins.pem
+
+                    echo "[INFO] SSH key successfully placed at /home/ubuntu/.ssh/jenkins.pem"
+                '''
             }
         }
 
