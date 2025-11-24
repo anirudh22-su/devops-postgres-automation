@@ -48,25 +48,25 @@ pipeline {
             }
         }
 
-        stage('Prepare SSH Key for Ansible') {
-            steps {
-                sh '''
-                    echo "[INFO] Preparing SSH key for Ansible..."
+ stage('Prepare SSH Key for Ansible') {
+    steps {
+        sh '''
+            echo "[INFO] Preparing SSH key for Ansible..."
 
-                    # Jenkins key location (CORRECT)
-                    SSH_KEY_PATH=/var/lib/jenkins/.ssh/jenkins.pem
+            # Jenkins already owns this key, no sudo needed
+            SSH_KEY_PATH=/var/lib/jenkins/.ssh/jenkins.pem
 
-                    # Ensure correct perms
-                    sudo chmod 600 $SSH_KEY_PATH
-                    sudo chown jenkins:jenkins $SSH_KEY_PATH
+            # Copy key into workspace
+            cp $SSH_KEY_PATH jenkins.pem
 
-                    # Copy to workspace for Ansible
-                    cp $SSH_KEY_PATH jenkins.pem
+            # Set permissions (no sudo)
+            chmod 600 jenkins.pem
 
-                    chmod 600 jenkins.pem
-                '''
-            }
-        }
+            echo "[INFO] SSH key is ready."
+        '''
+    }
+}
+
 
         stage('Run Ansible Automation') {
             steps {
